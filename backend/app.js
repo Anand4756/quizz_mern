@@ -173,6 +173,7 @@ io.on("connection", async (socket) => {
     const currentPlayer = rooms[room].players.find(
       (player) => player.id === socket.id
     );
+
     if (currentPlayer) {
       const correctAnswer = rooms[room].correctAnswer;
       const isCorrect = correctAnswer !== null && correctAnswer === answerIndex;
@@ -190,12 +191,14 @@ io.on("connection", async (socket) => {
           score: player.score || 0,
         })),
       });
-      //   if (!rooms[room].currentQuestion) {
-      //     askNewQuestion(room);
-      //   }
-      setTimeout(() => {
+      // rooms[room].shouldAskNewQuestion = true;
+      if (rooms[room].shouldAskNewQuestion) {
+        rooms[room].shouldAskNewQuestion = false;
         askNewQuestion(room);
-      }, 5000); // Wait for 5 seconds before asking a new question
+      }
+      // setTimeout(() => {
+      //   askNewQuestion(room);
+      // }, 5000); // Wait for 5 seconds before asking a new question
     }
   });
 
@@ -266,7 +269,7 @@ function askNewQuestion(room) {
   );
 
   rooms[room].correctAnswer = correctAnswerIndex;
-
+  rooms[room].shouldAskNewQuestion = true;
   io.to(room).emit("newQuestion", {
     question: question.question,
     answers: question.answers.map((answer) => answer.text),
@@ -283,8 +286,10 @@ function askNewQuestion(room) {
       })),
     });
 
+    console.log("line285--->", rooms);
     setTimeout(() => {
       askNewQuestion(room);
+      // rooms[room].currentQuestion = "";
     }, 5000); // Wait for 5 seconds before asking a new question
   }, 10000); // Give players 10 seconds to answer
 }
