@@ -213,7 +213,7 @@ io.on("connection", async (socket) => {
     }
 
     rooms[room].players.push({ id: socket.id, name });
-    console.log("line162", rooms);
+    // console.log("line162", rooms);
     if (!rooms[room].currentQuestion) {
       askNewQuestion(room);
     }
@@ -331,7 +331,7 @@ function askNewQuestion(room) {
     return; // Exit the function to prevent further actions
   }
 
-  console.log("line260 inside new question-->", rooms);
+  // console.log("line260 inside new question-->", rooms);
 
   const randomIndex = Math.floor(Math.random() * questions.length);
   const question = questions[randomIndex];
@@ -358,7 +358,7 @@ function askNewQuestion(room) {
       })),
     });
 
-    console.log("line285--->", rooms);
+    // console.log("line285--->", rooms);
 
     askNewQuestion(room);
     // rooms[room].currentQuestion = "";
