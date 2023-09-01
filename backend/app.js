@@ -8,7 +8,7 @@ const server = http.createServer(app);
 app.use(cors());
 const io = socketIo(server, {
   cors: {
-    origin: "https://64f21a47cf074909df8651d1--jade-babka-5c427c.netlify.app",
+    origin: "https://quiz-wk26.onrender.com/",
     methods: ["GET", "POST"],
   },
 });
