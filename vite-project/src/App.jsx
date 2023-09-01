@@ -17,7 +17,8 @@ function App() {
   const [answered, setAnswered] = useState(false);
   const initialDuration = 15;
   const [seconds, setSeconds] = useState(initialDuration); // Set the initial duration in seconds
-
+  const [scores, setScores] = useState([]);
+  const [winner, setWinner] = useState();
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
 
 
@@ -95,14 +96,23 @@ const handleSubmit = (e) => {
           progress: undefined,
           theme: "dark",
           });
-      } else {
+      } 
+      setScores(data.scores);
+
+      // else {
         // setResult(`Incorrect. The correct answer was: ${data.answers[data.correctAnswer]}`);
-      }
+      // }
+
     });
+
+    socket.on('gameOver', (data)=>{
+      setWinner(data.winner);
+    })
 
     return () => {
       socket.off('newQuestion');
       socket.off('answerResult');
+      socket.off('gameOver');
     };
   }, []);
 
@@ -117,6 +127,12 @@ const handleSubmit = (e) => {
       setAnswered(true);
     }
   };
+
+    if(winner){
+      return (
+        <h1>winner is {winner}</h1>
+      )
+    }
 
   return (
     <div className="App">
@@ -152,6 +168,10 @@ const handleSubmit = (e) => {
                   </li>
                 ))}
               </ul>
+              {scores.map((player, index) => (
+          <p key={index}>{player.name}: {player.score}</p>
+        ))}
+
              
             </div>
           ) : (

@@ -26,6 +26,61 @@ const questions = [
     ],
   },
   {
+    question: "What is the chemical symbol for water?",
+    answers: [
+      { text: "H2O", correct: true },
+      { text: "CO2", correct: false },
+      { text: "O2", correct: false },
+      { text: "NaCl", correct: false },
+    ],
+  },
+  {
+    question: "What is the largest planet in our solar system?",
+    answers: [
+      { text: "Mercury", correct: false },
+      { text: "Venus", correct: false },
+      { text: "Mars", correct: false },
+      { text: "Jupiter", correct: true },
+    ],
+  },
+  {
+    question: "What is the chemical symbol for iron?",
+    answers: [
+      { text: "Fe", correct: true },
+      { text: "Ag", correct: false },
+      { text: "Au", correct: false },
+      { text: "Cu", correct: false },
+    ],
+  },
+  {
+    question: "Which famous scientist is known for the theory of evolution?",
+    answers: [
+      { text: "Galileo Galilei", correct: false },
+      { text: "Isaac Newton", correct: false },
+      { text: "Charles Darwin", correct: true },
+      { text: "Marie Curie", correct: false },
+    ],
+  },
+  {
+    question: "In which country was the game of chess invented?",
+    answers: [
+      { text: "China", correct: false },
+      { text: "India", correct: true },
+      { text: "Greece", correct: false },
+      { text: "Egypt", correct: false },
+    ],
+  },
+
+  {
+    question: "Which gas is responsible for the Earth's ozone layer?",
+    answers: [
+      { text: "Oxygen", correct: false },
+      { text: "Carbon Dioxide", correct: false },
+      { text: "Nitrogen", correct: false },
+      { text: "Ozone", correct: true },
+    ],
+  },
+  {
     question: "Which planet is known as the Red Planet?",
     answers: [
       { text: "Mars", correct: true },
@@ -143,7 +198,6 @@ const rooms = {};
 
 io.on("connection", async (socket) => {
   console.log("A user connected");
-  let shouldAskNewQuestion = true; // Flag to control new question asking
 
   socket.on("joinRoom", (room, name) => {
     socket.join(room);
@@ -168,6 +222,7 @@ io.on("connection", async (socket) => {
     //   rooms[room].shouldAskNewQuestion = false; // Set the flag to false after asking
     // }
   });
+  const winningThreshold = 5; // Winning score threshold
 
   socket.on("submitAnswer", (room, answerIndex) => {
     const currentPlayer = rooms[room].players.find(
@@ -179,7 +234,7 @@ io.on("connection", async (socket) => {
       const isCorrect = correctAnswer !== null && correctAnswer === answerIndex;
       currentPlayer.score = isCorrect
         ? (currentPlayer.score || 0) + 1
-        : currentPlayer.score || 0;
+        : (currentPlayer.score || 0) - 1;
       clearTimeout(rooms[room].questionTimeout);
 
       io.to(room).emit("answerResult", {
@@ -192,10 +247,18 @@ io.on("connection", async (socket) => {
         })),
       });
       // rooms[room].shouldAskNewQuestion = true;
-      if (rooms[room].shouldAskNewQuestion) {
-        rooms[room].shouldAskNewQuestion = false;
+      const playersInRoom = rooms[room].players;
+      const winner = playersInRoom.find(
+        (player) => (player.score || 0) >= winningThreshold
+      );
+
+      if (winner) {
+        io.to(room).emit("gameOver", { winner: winner.name });
+        delete rooms[room];
+      } else {
         askNewQuestion(room);
       }
+
       // setTimeout(() => {
       //   askNewQuestion(room);
       // }, 5000); // Wait for 5 seconds before asking a new question
@@ -255,12 +318,21 @@ io.on("connection", async (socket) => {
         (player) => player.id !== socket.id
       );
     }
+
     console.log("A user disconnected");
   });
 });
 
 function askNewQuestion(room) {
+  if (rooms[room].players.length === 0) {
+    // Clear or delete the room data
+    clearTimeout(rooms[room].questionTimeout); // Clear the question timeout
+    delete rooms[room];
+    return; // Exit the function to prevent further actions
+  }
+
   console.log("line260 inside new question-->", rooms);
+
   const randomIndex = Math.floor(Math.random() * questions.length);
   const question = questions[randomIndex];
   rooms[room].currentQuestion = question;
@@ -287,10 +359,10 @@ function askNewQuestion(room) {
     });
 
     console.log("line285--->", rooms);
-    setTimeout(() => {
-      askNewQuestion(room);
-      // rooms[room].currentQuestion = "";
-    }, 5000); // Wait for 5 seconds before asking a new question
+
+    askNewQuestion(room);
+    // rooms[room].currentQuestion = "";
+    // Wait for 5 seconds before asking a new question
   }, 10000); // Give players 10 seconds to answer
 }
 
