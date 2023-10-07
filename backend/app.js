@@ -8,11 +8,14 @@ const server = http.createServer(app);
 app.use(cors());
 const io = socketIo(server, {
   cors: {
-    origin: "https://64f22a7b61cf3710f969cf36--jade-babka-5c427c.netlify.app",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
-
+// cors: {
+//   origin: "https://64f22a7b61cf3710f969cf36--jade-babka-5c427c.netlify.app",
+//   methods: ["GET", "POST"],
+// },
 const PORT = process.env.PORT || 5000;
 
 const questions = [
@@ -194,9 +197,10 @@ const questions = [
   },
 ];
 
+
 const rooms = {};
 
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
   console.log("A user connected");
 
   socket.on("joinRoom", (room, name) => {
@@ -208,21 +212,22 @@ io.on("connection", async (socket) => {
         currentQuestion: null,
         correctAnswer: null,
         questionTimeout: null,
-        shouldAskNewQuestion: true, // Add this flag to the room object
+        shouldAskNewQuestion: true,
       };
     }
-
+    // to make score zero
+  //   if(rooms[room]){
+  //   rooms[room].players.forEach((player) => {
+  //     player.score = 0;
+  //   });
+  // }
+  // rooms[room].players.push({ id: socket.id, name,score: 0  });
     rooms[room].players.push({ id: socket.id, name });
-    // console.log("line162", rooms);
+
     if (!rooms[room].currentQuestion) {
       askNewQuestion(room);
     }
-    // if (rooms[room].shouldAskNewQuestion) {
-    //   askNewQuestion(room);
-    //   rooms[room].shouldAskNewQuestion = false; // Set the flag to false after asking
-    // }
   });
-  const winningThreshold = 5; // Winning score threshold
 
   socket.on("submitAnswer", (room, answerIndex) => {
     const currentPlayer = rooms[room].players.find(
@@ -235,6 +240,7 @@ io.on("connection", async (socket) => {
       currentPlayer.score = isCorrect
         ? (currentPlayer.score || 0) + 1
         : (currentPlayer.score || 0) - 1;
+
       clearTimeout(rooms[room].questionTimeout);
 
       io.to(room).emit("answerResult", {
@@ -246,9 +252,9 @@ io.on("connection", async (socket) => {
           score: player.score || 0,
         })),
       });
-      // rooms[room].shouldAskNewQuestion = true;
-      const playersInRoom = rooms[room].players;
-      const winner = playersInRoom.find(
+
+      const winningThreshold = 5;
+      const winner = rooms[room].players.find(
         (player) => (player.score || 0) >= winningThreshold
       );
 
@@ -258,59 +264,8 @@ io.on("connection", async (socket) => {
       } else {
         askNewQuestion(room);
       }
-
-      // setTimeout(() => {
-      //   askNewQuestion(room);
-      // }, 5000); // Wait for 5 seconds before asking a new question
     }
   });
-
-  //   socket.on("submitAnswer", (room, answerIndex) => {
-  //     console.log('line203--submit-->= ',rooms)
-  //     const currentPlayer = rooms[room].players.find(
-  //       (player) => player.id === socket.id
-  //     );
-  //     if (currentPlayer) {
-  //       const correctAnswer = rooms[room].correctAnswer;
-  //       const isCorrect = correctAnswer !== null && correctAnswer === answerIndex;
-  //       currentPlayer.score = isCorrect
-  //         ? (currentPlayer.score || 0) + 1
-  //         : currentPlayer.score || 0;
-
-  //       if (rooms[room].questionTimeout) {
-  //         clearTimeout(rooms[room].questionTimeout);
-  //         rooms[room].questionTimeout = null;
-  //       }
-
-  //       io.to(room).emit("answerResult", {
-  //         playerName: currentPlayer.name,
-  //         isCorrect,
-  //         correctAnswer,
-  //         scores: rooms[room].players.map((player) => ({
-  //           name: player.name,
-  //           score: player.score || 0,
-  //         })),
-  //       });
-  //       console.log('line228--submit-->= ',rooms)
-  //       if (!rooms[room].questionTimeout) {
-  //         rooms[room].questionTimeout = setTimeout(() => {
-  //           io.to(room).emit("answerResult", {
-  //             playerName: "No one",
-  //             isCorrect: false,
-  //             correctAnswer: rooms[room].correctAnswer,
-  //             scores: rooms[room].players.map((player) => ({
-  //               name: player.name,
-  //               score: player.score || 0,
-  //             })),
-  //           });
-  //           console.log('line240--submit-->= ',rooms)
-  //           setTimeout(() => {
-  //             askNewQuestion(room);
-  //           }, 5000); // Wait for 5 seconds before asking a new question
-  //         }, 10000); // Give players 10 seconds to answer
-  //       }
-  //     }
-  //   });
 
   socket.on("disconnect", () => {
     for (const room in rooms) {
@@ -325,13 +280,10 @@ io.on("connection", async (socket) => {
 
 function askNewQuestion(room) {
   if (rooms[room].players.length === 0) {
-    // Clear or delete the room data
-    clearTimeout(rooms[room].questionTimeout); // Clear the question timeout
+    clearTimeout(rooms[room].questionTimeout);
     delete rooms[room];
-    return; // Exit the function to prevent further actions
+    return;
   }
-
-  // console.log("line260 inside new question-->", rooms);
 
   const randomIndex = Math.floor(Math.random() * questions.length);
   const question = questions[randomIndex];
@@ -345,6 +297,7 @@ function askNewQuestion(room) {
   io.to(room).emit("newQuestion", {
     question: question.question,
     answers: question.answers.map((answer) => answer.text),
+    timer: 10,
   });
 
   rooms[room].questionTimeout = setTimeout(() => {
@@ -358,14 +311,11 @@ function askNewQuestion(room) {
       })),
     });
 
-    // console.log("line285--->", rooms);
-
     askNewQuestion(room);
-    // rooms[room].currentQuestion = "";
-    // Wait for 5 seconds before asking a new question
-  }, 10000); // Give players 10 seconds to answer
+  }, 10000);
 }
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

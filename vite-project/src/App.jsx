@@ -6,8 +6,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import io from 'socket.io-client';
 
-const socket = io("wss://quiz-wk26.onrender.com");
-
+const socket = io("ws://localhost:5000");
+// const socket = io("wss://quiz-wk26.onrender.com");
 function App() {
   const [name, setName] = useState(null);
   const [room, setRoom] = useState(null);
@@ -15,8 +15,8 @@ function App() {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState([]);
   const [answered, setAnswered] = useState(false);
-  const initialDuration = 15;
-  const [seconds, setSeconds] = useState(initialDuration); // Set the initial duration in seconds
+ 
+  const [seconds, setSeconds] = useState(); // Set the initial duration in seconds
   const [scores, setScores] = useState([]);
   const [winner, setWinner] = useState();
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
@@ -32,7 +32,20 @@ const handleSubmit = (e) => {
   
   }
 };
+useEffect(() => {
+  // Exit the effect when the timer reaches 0
+  if (seconds === 0) return;
 
+  // Create an interval to decrement the time every second
+  const timerInterval = setInterval(() => {
+    setSeconds(prevTime => prevTime - 1);
+  }, 1000);
+
+  // Clean up the interval when the component unmounts
+  return () => {
+    clearInterval(timerInterval);
+  };
+}, [seconds]); 
   useEffect(() => {
     if (name) {
       socket.emit('joinRoom', room, name);
@@ -77,6 +90,7 @@ const handleSubmit = (e) => {
       setQuestion(data.question);
       setOptions(data.answers);
       setAnswered(false);
+      setSeconds(data.timer)
       setSelectedAnswerIndex();
      
 
@@ -138,7 +152,7 @@ const handleSubmit = (e) => {
     <div className="App">
       {!info ? (
         <div className='join-div'>
-          <h1>QUIZZY</h1>
+          <h1>QuizClash 💡</h1>
           <form onSubmit={handleSubmit}>
      <input required placeholder='Enter your name' value={name} onChange={(e)=>setName(e.target.value)}/>
      <input required placeholder='Enter room no' value={room} onChange={(e)=>setRoom(e.target.value)} />
@@ -147,13 +161,14 @@ const handleSubmit = (e) => {
      </div>
       ) : (
         <div>
-          <h1>Quiz Battle</h1>
-          <p className='room-id'>Room: {room}</p>
+          <h1>QuizClash 💡</h1>
+          <p className='room-id'>Room Id: {room}</p>
           <ToastContainer />
-          Remaining Time: {seconds}
+        
           {question ? (
             
             <div className='quiz-div'>
+              Remaining Time: {seconds}
                  
               <div className='question'>
               <p className='question-text'>{question}</p>

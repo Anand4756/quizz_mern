@@ -12,11 +12,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 12px 13px 12px rgba(0, 0, 0, 0.5);
+  /* box-shadow: 12px 13px 20px rgba(0, 0, 0, 0.5); */
 }
 input{
 padding: 5px;
 font-size: medium;
+border-radius: 10px;
 }
 
 input, .join-btn{
@@ -42,7 +43,7 @@ input, .join-btn{
 .quiz-div{
   height: max-content;
   padding: 5px;
-  box-shadow: 12px 15px 12px 5px rgba(0, 0, 0, 0.5);
+  /* box-shadow: 12px 15px 12px 5px rgba(0, 0, 0, 0.5); */
 }
 
 .question{
@@ -75,28 +76,5 @@ li{
 }
 
 
-
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 
