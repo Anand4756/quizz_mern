@@ -6,8 +6,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import io from 'socket.io-client';
 
-const socket = io("ws://localhost:5000");
-// const socket = io("wss://quiz-wk26.onrender.com");
+// const socket = io("ws://localhost:5000");
+ const socket = io("wss://quiz-wk26.onrender.com");
 function App() {
   const [name, setName] = useState(null);
   const [room, setRoom] = useState(null);
