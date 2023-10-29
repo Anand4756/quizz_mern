@@ -8,9 +8,13 @@ const server = http.createServer(app);
 app.use(cors());
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-  },
+  origin: "https://64f22a7b61cf3710f969cf36--jade-babka-5c427c.netlify.app",
+  methods: ["GET", "POST"],
+},
+  // cors: {
+  //   origin: "http://localhost:5173",
+  //   methods: ["GET", "POST"],
+  // },
 });
 // cors: {
 //   origin: "https://64f22a7b61cf3710f969cf36--jade-babka-5c427c.netlify.app",
